@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 )
 
 func handlerLogin(s *state, cmd command) error {
@@ -10,11 +12,11 @@ func handlerLogin(s *state, cmd command) error {
 	}
 	name := cmd.Args[0]
 
-	err := s.cfg.SetUser(name)
+	user, err := s.db.GetUser(context.Background(), name)
 	if err != nil {
-		return fmt.Errorf("couldn't set current user: %w", err)
+		log.Fatal("User not registered:", err)
 	}
-
-	fmt.Println("User switched successfully!")
+	s.cfg.SetUser(user.Name)
+	fmt.Println("User login successful!")
 	return nil
 }
