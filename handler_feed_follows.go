@@ -10,14 +10,9 @@ import (
 	"github.com/google/uuid"
 )
 
-func handlerFeedFollow(s *state, cmd command) error {
+func handlerFeedFollow(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) != 1 {
 		return fmt.Errorf("usage: %s <url>", cmd.Name)
-	}
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-
-	if err != nil {
-		log.Fatal("Failed to fetch user")
 	}
 	url := cmd.Args[0]
 	feed, err := s.db.GetFeedsByUrl(context.Background(), url)
@@ -33,5 +28,21 @@ func handlerFeedFollow(s *state, cmd command) error {
 	}
 	s.db.CreateFeedFollow(context.Background(), arg)
 	fmt.Printf("Feed: %s Followed by: %s \n", feed.Name, user.Name)
+	return nil
+}
+
+func handlerFeedFollowing(s *state, cmd command, user database.User) error {
+	feedFollows, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
+	if err != nil {
+		log.Fatal("Failed to fetch feed")
+	}
+	if len(feedFollows) == 0 {
+		fmt.Println("No feed follows found for this user.")
+		return nil
+	}
+	fmt.Printf("Feed follows for user %s:\n", user.Name)
+	for _, feedFollow := range feedFollows {
+		fmt.Println(feedFollow.FeedName)
+	}
 	return nil
 }
